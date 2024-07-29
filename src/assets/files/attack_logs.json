@@ -1,0 +1,14 @@
+{
+  "logs": [
+  {"date": "2023-07-01", "type": "DDoS", "product": "AntiDDoS", "status": "mitigated"},
+  {"date": "2023-07-02", "type": "Bot", "product": "AntiBot", "status": "active"},
+  {"date": "2023-07-03", "type": "Intrusion", "product": "WAF", "status": "blocked"},
+  {"date": "2023-07-04", "type": "Malware", "product": "SEG", "status": "quarantined"},
+  {"date": "2023-07-05", "type": "Phishing", "product": "AntiBot", "status": "mitigated"},
+  {"date": "2023-07-06", "type": "Exploit", "product": "SEG", "status": "active"},
+  {"date": "2023-07-07", "type": "DDoS", "product": "AntiDDoS", "status": "mitigated"},
+  {"date": "2023-07-08", "type": "Bot", "product": "AntiBot", "status": "active"},
+  {"date": "2023-07-09", "type": "Intrusion", "product": "WAF", "status": "blocked"},
+  {"date": "2023-07-10", "type": "Malware", "product": "SEG", "status": "quarantined"}
+  ]
+  }
