@@ -2,10 +2,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 import { DataService } from './data.service';
 import { CommonModule } from '@angular/common';
-import { BehaviorSubject, Observable, combineLatest, forkJoin, map, tap } from 'rxjs';
-import { Sort, MatSortModule} from '@angular/material/sort';
+import { BehaviorSubject, Observable, combineLatest, map, shareReplay } from 'rxjs';
+import { Sort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
-import { ILog, Product, Status} from './log.interface';
+import { ILog, Product, Status } from './log.interface';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
@@ -20,7 +20,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatSelectModule, FormsModule, LayoutModule, MatProgressSpinnerModule
   ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.less',
+  styleUrls: ['./app.component.less'],
   providers: [DataService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,30 +28,44 @@ export class AppComponent {
   readonly displayedColumns = ['date', 'type', 'product', 'status'];
   private isRefreshed = false;
   readonly products = Object.values(Product);
-  readonly selectedProduct = Product.AllProducts;
+  selectedProduct: Product = Product.AllProducts;
   readonly statuses = Object.values(Status);
-  readonly selectedStatus = Status.AllStatuses;
+  selectedStatus: Status = Status.AllStatuses;
   readonly isSmallScreen$ = this.breakpointObserver.observe(Breakpoints.XSmall).pipe(
     map(media => media.matches)
   );
 
-  data$: Observable<Array<ILog>> = this.dataService.getData().pipe(
-    map(json => JSON.parse(JSON.stringify(json))['logs']),
-  );
+  private readonly data$: Observable<ILog[]> = this.dataService.getData().pipe(
+      map(json => JSON.parse(JSON.stringify(json))['logs']),
+      shareReplay(1)
+    );
 
-  readonly updatedData$: Observable<Array<ILog>> = this.dataService.refreshData().pipe(
+  refreshedData$: Observable<ILog[]> = this.dataService.refreshData().pipe(
     map(json => JSON.parse(JSON.stringify(json))['new_logs']),
+  )
+
+  private readonly productFilter$ = new BehaviorSubject<Product>(Product.AllProducts);
+  private readonly statusFilter$ = new BehaviorSubject<Status>(Status.AllStatuses);
+
+  filteredData$: Observable<Array<ILog>> = combineLatest([
+    this.data$,
+    this.productFilter$,
+    this.statusFilter$
+  ]).pipe(
+    map(([logs, product, status]) => {
+      return logs.filter(log =>
+        (product === Product.AllProducts || log.product === product) &&
+        (status === Status.AllStatuses || log.status === status)
+      );
+    })
   );
 
-  productFilter$ = new BehaviorSubject<Product>(Product.AllProducts);
-  statusFilter$ = new BehaviorSubject<Status>(Status.AllStatuses);
-
-  constructor( private dataService: DataService, private breakpointObserver: BreakpointObserver ) {}
+  constructor(private dataService: DataService, private breakpointObserver: BreakpointObserver) {}
 
   sortData(sort: Sort) {
     if (!sort.active || sort.direction === '') { return; }
 
-    this.data$ = this.data$.pipe(
+    this.data$.pipe(
       map(data => data?.sort((a, b) => {
         const isAsc = sort.direction === 'asc';
         switch (sort.active) {
@@ -66,8 +80,8 @@ export class AppComponent {
           default:
             return 0;
         }
-      })),
-    )
+      })))
+
     function compare(a: number | string | Date, b: number | string | Date, isAsc: boolean) {
       return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
     }
@@ -75,40 +89,32 @@ export class AppComponent {
 
   refreshLogs() {
     if (this.isRefreshed) { return; }
-
-    this.data$ = forkJoin([this.data$, this.updatedData$])
-    .pipe(
-      map(data => data.flat())
-    )
-
     this.isRefreshed = true;
+
+    this.filteredData$ = combineLatest([
+      this.data$,
+      this.refreshedData$,
+      this.productFilter$,
+      this.statusFilter$
+    ]).pipe(
+      map(([logs, new_logs, product, status]) => {
+        const updated = logs.concat(new_logs);
+        return updated.filter(log =>
+          (product === Product.AllProducts || log.product === product) &&
+          (status === Status.AllStatuses || log.status === status)
+        );
+      })
+    );
+
+    this.onProductChange();
+    this.onStatusChange();
   }
 
   onProductChange() {
     this.productFilter$.next(this.selectedProduct);
-
-    this.data$ = combineLatest([this.data$, this.productFilter$])
-      .pipe(
-        map(([logs, product]) => {
-          return product === Product.AllProducts
-            ? logs
-            : logs.filter(log => log.product === product)
-        }
-      )
-    )
   }
 
   onStatusChange() {
     this.statusFilter$.next(this.selectedStatus);
-
-    this.data$ = combineLatest([this.data$, this.statusFilter$])
-      .pipe(
-        map(([logs, status]) => {
-          return status === Status.AllStatuses
-            ? logs
-            : logs.filter(log => log.status === status)
-        }
-      )
-    )
   }
 }

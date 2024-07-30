@@ -23,7 +23,7 @@
   <button mat-button (click)="refreshLogs()" data-test-id="refresh-logs-button">update</button>
 </ng-template>
 
-<table mat-table [dataSource]="data$" matSort (matSortChange)="sortData($event)" class="mat-elevation-z8" data-test-id="attack-logs-table">
+<table mat-table [dataSource]="filteredData$" matSort (matSortChange)="sortData($event)" class="mat-elevation-z8" data-test-id="attack-logs-table">
 
   <ng-container matColumnDef="date">
     <th mat-header-cell *matHeaderCellDef mat-sort-header data-test-id="log-date-header">
