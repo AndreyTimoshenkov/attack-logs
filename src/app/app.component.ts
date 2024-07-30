@@ -65,7 +65,7 @@ export class AppComponent {
   sortData(sort: Sort) {
     if (!sort.active || sort.direction === '') { return; }
 
-    this.data$.pipe(
+    this.filteredData$ = this.data$.pipe(
       map(data => data?.sort((a, b) => {
         const isAsc = sort.direction === 'asc';
         switch (sort.active) {
