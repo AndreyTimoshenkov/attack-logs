@@ -1,20 +1,30 @@
-<mat-select [(ngModel)]="selectedProduct" name="food">
-  @for (product of products; track product)
-  {
-    <mat-option [value]="product">{{product}}</mat-option>
-  }
-</mat-select>
+<div class="header">
+  <mat-select [(ngModel)]="selectedProduct" name="product" (selectionChange)="onProductChange()">
+    @for (product of products; track product)
+    {
+      <mat-option [value]="product">{{product}}</mat-option>
+    }
+  </mat-select>
 
-<mat-select [(ngModel)]="selectedStatus" name="food">
-  @for (status of statuses; track status)
-  {
-    <mat-option [value]="status">{{status}}</mat-option>
-  }
-</mat-select>
+  <mat-select [(ngModel)]="selectedStatus" name="status" (selectionChange)="onStatusChange()">
+    @for (status of statuses; track status)
+    {
+      <mat-option [value]="status">{{status}}</mat-option>
+    }
+  </mat-select>
 
-<button mat-button (click)="refreshLogs()" data-test-id="refresh-logs-button">update</button>
+  <ng-container [ngTemplateOutlet]="!(isSmallScreen$ | async) ? updateButton : null"></ng-container>
+
+</div>
+
+  <ng-container [ngTemplateOutlet]="(isSmallScreen$ | async) ? updateButton : null"></ng-container>
+
+<ng-template #updateButton>
+  <button mat-button (click)="refreshLogs()" data-test-id="refresh-logs-button">update</button>
+</ng-template>
 
 <table mat-table [dataSource]="data$" matSort (matSortChange)="sortData($event)" class="mat-elevation-z8" data-test-id="attack-logs-table">
+
   <ng-container matColumnDef="date">
     <th mat-header-cell *matHeaderCellDef mat-sort-header data-test-id="log-date-header">
       Date
@@ -44,5 +54,5 @@
   </ng-container>
 
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns;" data-test-id="log-entry"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns" data-test-id="log-entry"></tr>
 </table>

@@ -1,3 +1,29 @@
+@XSmall: { max-width: 599px };
+
 :host {
-  height: 100svh;
+  margin: 10px;
+
+  .header {
+    display: flex;
+    margin: 20px;
+    align-items: center;
+    justify-content: space-between;
+
+    mat-select {
+      margin-right: 20px;
+      text-align: center;
+
+      @media @XSmall {
+        margin-right: 10px;;
+      }
+    }
+  }
+}
+
+button {
+  width: 100%;
+
+  @media @XSmall {
+    text-align: center;
+  }
 }
