@@ -1,3 +1,5 @@
+Deployed to GH: https://andreytimoshenkov.github.io/attack-logs/
+
 Basic functionality includes but is not limited to: 
 
 1. Imitation backend requests while actually fetching locally stored JSON data.
